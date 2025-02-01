@@ -760,19 +760,14 @@ long lexInStr(Lexer *l, unsigned char *buf, long size, int *done,
                 break;
             case 'x':
             case 'X':
-                j = 0;
-                for (k = 0; k < 2; k++) {
-                    ch = toupper(lexNextChar(l));
-                    if (isHex(ch)) {
-                        if (ch <= '9') {
-                            j = (j << 4) + ch - '0';
-                        } else {
-                            j = (j << 4) - 'A' + 10;
-                        }
-                    } 
-                        break;
-                }
-                buf[i++] = j;
+                buf[i++] = '\\';
+                buf[i++] = 'x';
+                // FIXME: doesn't check for isHex!
+                //     from what I saw it shouldn't happen here anyway,
+                //     since there are no errors emitted from the lexer stage.
+                //     but of course I might be wrong.
+                buf[i++] = lexNextChar(l);
+                buf[i++] = lexNextChar(l);
                 break;
             default:
                 buf[i++] = '\\';
