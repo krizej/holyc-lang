@@ -1609,15 +1609,7 @@ void asmExpression(Cctrl *cc, aoStr *buf, Ast *ast) {
 
         AstType *op_type =  ast->operand->type;
         AstType *result = ast->type;
-        char *reg;
-    
-        if (op_type->kind == AST_TYPE_POINTER &&
-                op_type->ptr->kind == AST_TYPE_ARRAY) {
-            return;
-        }
-
-
-        reg = "rcx"; // asmGetIntReg(result,'c');
+        char *reg = "rcx"; // asmGetIntReg(result,'c');
 
         aoStrCatPrintf(buf, "##__DEREF_START: %s\n\t", astKindToString(result->kind));
         if (result->size < 4) {
@@ -1630,7 +1622,7 @@ void asmExpression(Cctrl *cc, aoStr *buf, Ast *ast) {
             } else if (result->kind == AST_TYPE_CLASS) {
                 aoStrCatPrintf(buf, "movq   %%rax, %%rcx\n\t"
                         "leaq (%%%s), %%rax\n\t", reg);
-            } else if (result->kind != AST_TYPE_POINTER) {
+            } else if (result->kind != AST_TYPE_POINTER && result->kind != AST_TYPE_ARRAY) {
                 aoStrCatPrintf(buf,"# deref not ptr start: %s %s\n\t",
                         astKindToString(result->kind), astKindToString(op_type->kind));
                // aoStrCatPrintf(buf,"movq   (%%%s), %%rax\n\t", reg);
@@ -1645,13 +1637,12 @@ void asmExpression(Cctrl *cc, aoStr *buf, Ast *ast) {
                                         "%s   (%%%s), %%rax\n\t",mov, reg);
                 }
                 aoStrCatPrintf(buf,"# deref not ptr start\n\t");
-            } else if (result->kind == AST_TYPE_POINTER) {
-                reg = asmGetIntReg(result,'a');
-                char *mov = asmGetMov(result);
+            } else if (result->kind == AST_TYPE_POINTER || result->kind == AST_TYPE_ARRAY) {
+                reg = "rax";//asmGetIntReg(result,'a');
                 switch (result->ptr->kind) {
                     case AST_TYPE_CHAR:
                         aoStrCatPrintf(buf,"# deref char start\n\t");
-                        aoStrCatPrintf(buf,"%s   (%%%s), %%rax\n\t",mov, reg);
+                        aoStrCatPrintf(buf,"movq   (%%%s), %%rax\n\t", reg);
                         aoStrCatPrintf(buf,"# deref char end\n\t");
                         break;
                     case AST_TYPE_INT:
